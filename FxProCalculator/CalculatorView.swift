@@ -73,7 +73,7 @@ struct CalculatorView: View {
                 .padding(14)
                 .frame(maxWidth: 600)
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: geo.size.height, alignment: .top)
+                .frame(height: max(geo.size.height, programmerMode ? 820 : 700), alignment: .top)
             }
             .background(Palette.bg.ignoresSafeArea())
         }
@@ -152,6 +152,7 @@ struct CalculatorView: View {
                 }
             }
         }
+        .frame(maxHeight: .infinity)
     }
 
     private var programmerKeyboard: some View {
@@ -164,6 +165,7 @@ struct CalculatorView: View {
                 }
             }
         }
+        .frame(maxHeight: .infinity)
     }
 
     private func keypadButton(_ title: String, compact: Bool, disabled: Bool = false, action: @escaping () -> Void) -> some View {
@@ -173,7 +175,7 @@ struct CalculatorView: View {
             Text(title)
                 .font(.system(size: title.count > 3 ? 13 : 18, weight: .semibold, design: .rounded))
                 .frame(maxWidth: .infinity)
-                .frame(height: compact ? 43 : 52)
+                .frame(minHeight: compact ? 43 : 52, maxHeight: .infinity)
                 .foregroundStyle(disabled ? Color.white.opacity(0.2) : .white)
                 .background(disabled ? Palette.key.opacity(0.5) : (clearing ? Palette.secondary : (special ? Palette.accent : Palette.key)), in: RoundedRectangle(cornerRadius: 9))
         }
