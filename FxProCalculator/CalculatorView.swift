@@ -1,4 +1,28 @@
 import SwiftUI
+import UIKit
+
+private enum KeyFeedback {
+    static let impact = UIImpactFeedbackGenerator(style: .light)
+
+    static func press() {
+        impact.impactOccurred(intensity: 0.65)
+        impact.prepare()
+    }
+}
+
+private struct CalculatorKeyStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .brightness(configuration.isPressed ? 0.12 : 0)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.08), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { pressed in
+                if pressed { KeyFeedback.press() }
+            }
+    }
+}
 
 private enum Palette {
     static let bg = Color(red: 0.075, green: 0.10, blue: 0.14)
@@ -78,6 +102,9 @@ struct CalculatorView: View {
             .background(Palette.bg.ignoresSafeArea())
         }
         .preferredColorScheme(.dark)
+        .buttonStyle(CalculatorKeyStyle())
+        .onAppear { KeyFeedback.impact.prepare() }
+        .onChange(of: programmerMode) { _ in KeyFeedback.press() }
         .sheet(isPresented: $showHistory) {
             NavigationStack {
                 List(history.reversed(), id: \.self) { item in Text(item).font(.system(.body, design: .monospaced)) }
@@ -134,7 +161,7 @@ struct CalculatorView: View {
                     .padding(.horizontal, 7)
                     .background(prog.radix == r ? Color.black.opacity(0.10) : .clear, in: RoundedRectangle(cornerRadius: 6))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(CalculatorKeyStyle())
             }
             if let error = prog.error { Text(error).font(.caption).foregroundStyle(.red) }
         }
@@ -179,7 +206,7 @@ struct CalculatorView: View {
                 .foregroundStyle(disabled ? Color.white.opacity(0.2) : .white)
                 .background(disabled ? Palette.key.opacity(0.5) : (clearing ? Palette.secondary : (special ? Palette.accent : Palette.key)), in: RoundedRectangle(cornerRadius: 9))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(CalculatorKeyStyle())
         .disabled(disabled)
     }
 
@@ -210,7 +237,7 @@ struct CalculatorView: View {
                             }
                             .frame(maxWidth: .infinity).padding(.vertical, 5)
                             .background(on ? Palette.accent : Palette.key, in: RoundedRectangle(cornerRadius: 4))
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(CalculatorKeyStyle())
                     }
                 }
             }
