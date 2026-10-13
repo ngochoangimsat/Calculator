@@ -1,0 +1,34 @@
+name: FxProCalculator
+options:
+  bundleIdPrefix: com.icar
+  deploymentTarget:
+    iOS: '16.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    TARGETED_DEVICE_FAMILY: '1,2'
+    DEVELOPMENT_TEAM: ''
+    CODE_SIGN_STYLE: Automatic
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_CFBundleDisplayName: 'Máy tính FX Pro'
+    INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+targets:
+  FxProCalculator:
+    type: application
+    platform: iOS
+    sources:
+      - path: FxProCalculator
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.icar.fxprocalculator
+        PRODUCT_NAME: FxProCalculator
+        CODE_SIGNING_ALLOWED: NO
+        IPHONEOS_DEPLOYMENT_TARGET: '16.0'
+        SUPPORTS_MACCATALYST: NO
+schemes:
+  FxProCalculator:
+    build:
+      targets:
+        FxProCalculator: all
