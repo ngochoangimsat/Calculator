@@ -24,9 +24,7 @@ private struct CalculatorKeyStyle: ButtonStyle {
             .brightness(configuration.isPressed ? 0.12 : 0)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.08), value: configuration.isPressed)
-            .onChange(of: configuration.isPressed) { pressed in
-                if pressed { KeyFeedback.press(sound: soundEnabled, haptics: hapticsEnabled) }
-            }
+
     }
 }
 
@@ -173,6 +171,7 @@ struct CalculatorView: View {
             }
             ForEach(ProgrammerEngine.Radix.allCases) { r in
                 Button {
+                    KeyFeedback.press(sound: soundEnabled, haptics: hapticsEnabled)
                     prog.radix = r; prog.fresh = true
                 } label: {
                     HStack(spacing: 10) {
@@ -224,7 +223,10 @@ struct CalculatorView: View {
     private func keypadButton(_ title: String, compact: Bool, disabled: Bool = false, action: @escaping () -> Void) -> some View {
         let special = ["=", "+", "−", "×", "÷", "AND", "OR", "XOR", "NOT", "<<", ">>", "MOD"].contains(title)
         let clearing = ["AC", "⌫"].contains(title)
-        return Button(action: action) {
+        return Button(action: {
+            KeyFeedback.press(sound: soundEnabled, haptics: hapticsEnabled)
+            action()
+        }) {
             Text(title)
                 .font(.system(size: title.count > 3 ? 13 : 18, weight: .semibold, design: .rounded))
                 .frame(maxWidth: .infinity)
@@ -256,7 +258,10 @@ struct CalculatorView: View {
                     ForEach(0..<8, id: \.self) { col in
                         let bit = (bitPage == 0 ? 63 : 31) - row * 8 - col
                         let on = (prog.value & (UInt64(1) << bit)) != 0
-                        Button { prog.toggle(bit) } label: {
+                        Button {
+                            KeyFeedback.press(sound: soundEnabled, haptics: hapticsEnabled)
+                            prog.toggle(bit)
+                        } label: {
                             VStack(spacing: 3) {
                                 Text("\(bit)").font(.system(size: 9, design: .monospaced))
                                 Text(on ? "1" : "0").font(.system(size: 16, weight: .bold, design: .monospaced))
