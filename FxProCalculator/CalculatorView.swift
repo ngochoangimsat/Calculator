@@ -1,17 +1,23 @@
 import SwiftUI
 import UIKit
+import AudioToolbox
 
 private enum KeyFeedback {
     static let impact = UIImpactFeedbackGenerator(style: .light)
 
-    static func press() {
-        impact.impactOccurred(intensity: 0.65)
-        impact.prepare()
+    static func press(sound: Bool, haptics: Bool) {
+        if sound { AudioServicesPlaySystemSound(1104) }
+        if haptics {
+            impact.impactOccurred(intensity: 0.65)
+            impact.prepare()
+        }
     }
 }
 
 private struct CalculatorKeyStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("keySoundEnabled") private var soundEnabled = true
+    @AppStorage("keyHapticsEnabled") private var hapticsEnabled = true
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -19,7 +25,7 @@ private struct CalculatorKeyStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.08), value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { pressed in
-                if pressed { KeyFeedback.press() }
+                if pressed { KeyFeedback.press(sound: soundEnabled, haptics: hapticsEnabled) }
             }
     }
 }
@@ -33,6 +39,9 @@ private enum Palette {
 }
 
 struct CalculatorView: View {
+    @AppStorage("keySoundEnabled") private var soundEnabled = true
+    @AppStorage("keyHapticsEnabled") private var hapticsEnabled = true
+    @State private var showSettings = false
     @State private var programmerMode = false
     @State private var scientificInput = ""
     @State private var scientificOutput = "0"
@@ -73,6 +82,9 @@ struct CalculatorView: View {
                             Text("SCIENTIFIC • PROGRAMMER").font(.system(size: 9, weight: .medium)).tracking(1.6)
                         }
                         Spacer()
+                        Button { showSettings = true } label: {
+                            Image(systemName: "gearshape").font(.title3)
+                        }.accessibilityLabel("Cài đặt")
                         Button { showHistory = true } label: {
                             Image(systemName: "clock.arrow.circlepath").font(.title3)
                         }.accessibilityLabel("Lịch sử")
@@ -104,7 +116,21 @@ struct CalculatorView: View {
         .preferredColorScheme(.dark)
         .buttonStyle(CalculatorKeyStyle())
         .onAppear { KeyFeedback.impact.prepare() }
-        .onChange(of: programmerMode) { _ in KeyFeedback.press() }
+        .onChange(of: programmerMode) { _ in KeyFeedback.press(sound: soundEnabled, haptics: hapticsEnabled) }
+        .sheet(isPresented: $showSettings) {
+            NavigationStack {
+                Form {
+                    Toggle("Âm thanh khi bấm phím", isOn: $soundEnabled)
+                    Toggle("Rung khi bấm phím", isOn: $hapticsEnabled)
+                    Text("Âm thanh sử dụng mức âm lượng hệ thống.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                .navigationTitle("Phản hồi phím")
+                .toolbar { ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Đóng") { showSettings = false }
+                }}
+            }
+        }
         .sheet(isPresented: $showHistory) {
             NavigationStack {
                 List(history.reversed(), id: \.self) { item in Text(item).font(.system(.body, design: .monospaced)) }
